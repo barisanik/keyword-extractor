@@ -3,6 +3,10 @@
 İş ilanı metinlerindeki anahtar kelimeleri kategorilere ayırarak takip eden ve bu kelimeleri verilen yetkinlik setiyle karşılaştırıp eksikleri (gap) işaretleyen basit bir araçtır.
 Tek bir HTML dosyasından ibarettir. Tarayıcıda açıp doğrudan kullanılabilir.
 
+<img width="1121" height="1035" alt="image" src="https://github.com/user-attachments/assets/b1c6d508-b4f0-402f-8786-d6d4c0552c12" />
+<img width="842" height="336" alt="image" src="https://github.com/user-attachments/assets/9e70aabb-3985-4d42-b8cf-74e7bdbae84b" />
+<img width="837" height="703" alt="image" src="https://github.com/user-attachments/assets/59981ad5-c70b-40bf-b401-3a2d94598908" />
+
 ## Özellikler
 
 - **Anahtar kelime çıkarımı:** `Tekli Analiz` ve `İlan Karşılaştırma` sayfalarında verilen ilanlarda yer alan anahtar kelimeleri tespit eder, vurgular ve kategorize eder.
