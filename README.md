@@ -24,5 +24,5 @@ Tek bir HTML dosyasından ibarettir. Tarayıcıda açıp doğrudan kullanılabil
 Sonradan eklenen tüm anahtar kelimeler ve yetkinlikler oturum boyunca tarayıcı hafızasında tutulur. Anahtar kelimelerin kalıcı olarak saklanabilmesi için `⬇ JSON indir` ve `⬆ JSON yükle` butonları kullanılır.
 
 **Not:** `İlan Karşılaştırma` sekmesinde yer alan klasör seçme işlemi esnasında bir kerelik açılan uyarı mesajı üzerinden ilgili klasöre erişim izni verilmesi gerekmektedir. Bu standart bir tarayıcı erişim iznidir. Sonraki girişlerde bu klasöre erişim için izin gerekmez.
-<center>
-<img width="444" height="178" alt="image" src="https://github.com/user-attachments/assets/91babf89-f4c6-43b3-a746-24cc9ad897b7" />
+
+<img width="444" height="178" alt="image" src="https://github.com/user-attachments/assets/f1578c58-330a-4cdf-9951-538e75955922" />
