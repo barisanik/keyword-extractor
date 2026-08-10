@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İlan Anahtar Kelime Çıkarıcı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f3f5f8;
+    --panel: #ffffff;
+    --ink: #1a2233;
+    --ink-soft: #56607a;
+    --line: #d7dce6;
+    --line-soft: #e7eaf1;
+    --accent: #1f5f52;
+    --accent-soft: #e4efec;
+    --good: #1f8a4c;
+    --bad: #c23b3b;
+    --warn-bg: #fdecec;
+    --warn-border: #f2b8b8;
+    --ok-bg: #eaf7ee;
+    --ok-border: #b9e3c4;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding:28px;
+  }
+  .wrap{max-width:1280px;margin:0 auto;}
+
+  header.top{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:24px; margin-bottom:18px; flex-wrap:wrap;
+    border-bottom:2px solid var(--ink); padding-bottom:14px;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--ink-soft); margin:0 0 4px;
+  }
+  h1{font-size:26px; margin:0; font-weight:700; letter-spacing:-0.01em;}
+  .stats{
+    font-family:var(--mono); font-size:12px; color:var(--ink-soft);
+    display:flex; gap:18px; text-align:right;
+  }
+  .stats b{display:block; font-size:20px; color:var(--ink); font-weight:600;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .tab-btn{
+    font-family:var(--mono); font-size:12px; letter-spacing:.04em; text-transform:uppercase;
+    padding:9px 16px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+    cursor:pointer; font-weight:600;
+  }
+  .tab-btn.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+  .grid{
+    display:grid;
+    grid-template-columns: minmax(0,1.5fr) minmax(280px,1fr);
+    gap:22px;
+    align-items:start;
+  }
+  @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .panel + .panel{margin-top:18px;}
+  .panel h2{
+    font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    margin:0 0 12px; color:var(--ink-soft); font-weight:600;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  textarea#jobInput{
+    width:100%; min-height:100px; resize:vertical;
+    border:1px dashed var(--line); border-radius:8px; padding:12px 14px;
+    font-family:var(--sans); font-size:14.5px; color:var(--ink);
+    background:#fbfcfe; outline:none;
+  }
+  textarea#jobInput:focus{border-color:var(--accent); background:#fff;}
+
+  #preview{
+    margin-top:14px; padding:16px 18px; border-radius:8px;
+    background:#fbfcfe; border:1px solid var(--line-soft);
+    font-size:15px; white-space:pre-wrap; word-break:break-word;
+    min-height:80px;
+  }
+  #preview.empty{color:var(--ink-soft); font-style:italic; font-size:13.5px;}
+
+  mark.hl{
+    background: linear-gradient(105deg, transparent 0%, var(--cat-color) 6%, var(--cat-color) 94%, transparent 100%);
+    padding:1px 3px; border-radius:3px 8px 3px 8px; color:#1a2233; font-weight:600;
+    cursor:default; box-decoration-break:clone; -webkit-box-decoration-break:clone;
+  }
+
+  .flag-banner{
+    border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:14px;
+    display:flex; gap:8px; align-items:flex-start;
+  }
+  .flag-banner.warn{background:var(--warn-bg); border:1px solid var(--warn-border); color:#7a2323;}
+  .flag-banner.ok{background:var(--ok-bg); border:1px solid var(--ok-border); color:#1f5c34;}
+
+  .gauge-wrap{display:flex; flex-direction:column; align-items:center; padding:6px 0 10px;}
+  .gauge-label{font-family:var(--mono); font-size:11px; color:var(--ink-soft); letter-spacing:.05em; text-transform:uppercase; margin-top:2px;}
+  .gauge-pct{font-family:var(--mono); font-weight:700; font-size:26px; fill:var(--ink);}
+
+  .cat-block{margin-bottom:14px;}
+  .cat-block:last-child{margin-bottom:0;}
+  .cat-title{
+    font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.03em;
+    display:flex; align-items:center; gap:8px; margin-bottom:7px;
+  }
+  .dot{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none;}
+  .chip-list{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    font-size:12.5px; padding:4px 9px 4px 7px; border-radius:20px; background:var(--chip-color);
+    border:1px solid rgba(0,0,0,.08); color:#1a2233; font-weight:500;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .chip.chip-danger{border:2px solid var(--bad); box-shadow:0 0 0 1px var(--bad) inset;}
+  .chip .mark-good{color:var(--good); font-weight:700;}
+  .chip .mark-bad{color:var(--bad); font-weight:700;}
+  .chip .freq-badge{font-family:var(--mono); font-size:10px; background:rgba(0,0,0,.12); padding:0px 5px; border-radius:8px;}
+  .muted{color:var(--ink-soft); font-size:13px;}
+
+  details{border-top:1px solid var(--line-soft); margin-top:14px; padding-top:12px;}
+  summary{cursor:pointer; font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); font-weight:600; outline:none;}
+  summary::-webkit-details-marker{display:none;}
+  summary:before{content:"▸ "; }
+  details[open] summary:before{content:"▾ ";}
+
+  .bank-form{display:grid; grid-template-columns:1fr 1fr auto auto; gap:8px; margin:12px 0 8px; align-items:start;}
+  .bank-form input[type=text], .bank-form select{
+    font-family:var(--sans); font-size:13px; padding:7px 9px; border:1px solid var(--line);
+    border-radius:6px; background:#fbfcfe; width:100%;
+  }
+  .cat-field{display:flex; flex-direction:column; gap:6px;}
+  .bank-form label.reg{font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:4px; font-family:var(--mono); padding-top:8px;}
+  .link-row{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+  .link-row select{font-family:var(--sans); font-size:13px; padding:6px 9px; border:1px solid var(--line); border-radius:6px; background:#fbfcfe;}
+  button{
+    font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.02em;
+    padding:7px 12px; border-radius:6px; border:1px solid var(--ink); background:var(--ink);
+    color:#fff; cursor:pointer;
+  }
+  button.secondary{background:#fff; color:var(--ink);}
+  button.danger{background:#fff; color:#b23; border-color:#e2c4c4; padding:3px 8px; font-size:11px;}
+  button.btn-sm{padding:3px 8px; font-size:11px;}
+  button:hover{opacity:.88;}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;}
+  input[type=file]{display:none;}
+
+  table#bankTable, table#postingsTable{width:100%; border-collapse:collapse; margin-top:10px; font-size:12.5px;}
+  table#bankTable th, table#postingsTable th{
+    text-align:left; font-family:var(--mono); font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--ink-soft); border-bottom:1px solid var(--line); padding:6px 6px;
+  }
+  table#bankTable td, table#postingsTable td{padding:7px 6px; border-bottom:1px solid var(--line-soft); vertical-align:middle;}
+  .regex-tag{font-family:var(--mono); font-size:10px; background:#f1e9d2; padding:1px 5px; border-radius:4px; color:#7a5c00;}
+  .alias-note{color:var(--ink-soft); font-size:11px;}
+  .src-tag{font-family:var(--mono); font-size:10px; background:var(--accent-soft); padding:1px 6px; border-radius:4px; color:var(--accent);}
+  .pct-cell{font-family:var(--mono); font-weight:700;}
+  .missing-cell{font-family:var(--mono); font-size:11px;}
+  .missing-cell.zero{color:var(--good);}
+  .missing-cell.nonzero{color:var(--bad);}
+
+  .skill-form{display:flex; gap:8px; margin-bottom:12px;}
+  .skill-form select{
+    flex:1; font-family:var(--sans); font-size:13px; padding:7px 9px; border:1px solid var(--line);
+    border-radius:6px; background:#fbfcfe;
+  }
+  .skill-form input[type=number]{
+    width:80px; font-family:var(--sans); font-size:13px; padding:7px 9px; border:1px solid var(--line);
+    border-radius:6px; background:#fbfcfe;
+  }
+  .skill-chip{
+    font-size:12.5px; padding:4px 6px 4px 10px; border-radius:20px; background:var(--accent-soft);
+    border:1px solid #cfe3dc; color:var(--ink); font-weight:500;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .skill-chip button{padding:0 6px; font-size:11px; border-radius:50%; line-height:1.6;}
+
+  #addPostingForm input[type=text], #addPostingForm textarea{
+    width:100%; font-family:var(--sans); font-size:13.5px; padding:9px 11px; border:1px solid var(--line);
+    border-radius:6px; background:#fbfcfe; margin-bottom:8px;
+  }
+  #addPostingForm textarea{min-height:120px; resize:vertical;}
+
+  .manage-row{border:1px solid var(--line-soft); border-radius:8px; padding:10px 12px; margin-bottom:10px; background:#fbfcfe;}
+  .manage-main{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;}
+  .manage-main input[type=text], .manage-main select{
+    font-family:var(--sans); font-size:13px; padding:5px 8px; border:1px solid var(--line); border-radius:6px;
+  }
+  .manage-aliases{margin-left:20px; display:flex; flex-direction:column; gap:6px;}
+  .manage-alias-row{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft);}
+  .manage-alias-row input[type=text]{
+    font-family:var(--sans); font-size:12.5px; padding:4px 7px; border:1px solid var(--line); border-radius:6px;
+  }
+  .manage-add-alias input{flex:1; max-width:220px;}
+
+  footer{margin-top:22px; font-size:12px; color:var(--ink-soft); text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>İlan Anahtar Kelime Çıkarıcı</h1>
+    </div>
+    <div class="stats">
+      <div><b id="statCount">0</b>tespit edilen yetkinlik</div>
+      <div><b id="statCat">0</b>kategori</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="single">1️⃣ Tekli Analiz</button>
+    <button class="tab-btn" data-tab="multi">🔀 İlan Karşılaştırma</button>
+    <button class="tab-btn" data-tab="manage">🔗 Anahtar Kelime Yönetim Paneli</button>
+  </div>
+
+  <div id="singleView">
+    <div class="grid">
+
+      <div>
+        <div class="panel">
+          <h2>İlan Metni</h2>
+          <textarea id="jobInput" placeholder="İş ilanı metnini buraya yapıştırın…"></textarea>
+        </div>
+        <div class="panel">
+          <h2>Vurgulanmış Önizleme</h2>
+          <div id="preview" class="empty">İlan metni alanı doldurulduğunda tespit edilen anahtar kelimeler burada vurgulanacak.</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h2>Eşleşme Oranı</h2>
+          <div id="flagBanner"></div>
+          <div class="gauge-wrap">
+            <svg id="gaugeSvg" viewBox="0 0 200 120" width="200" height="120">
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e8ee" stroke-width="16"
+                stroke-dasharray="251.2 502.4" stroke-linecap="round" transform="rotate(180 100 100)"/>
+              <circle id="gaugeFill" cx="100" cy="100" r="80" fill="none" stroke="var(--good)" stroke-width="16"
+                stroke-dasharray="0 502.4" stroke-linecap="round" transform="rotate(180 100 100)"/>
+              <text id="gaugePct" x="100" y="92" text-anchor="middle" class="gauge-pct">0%</text>
+            </svg>
+            <div class="gauge-label">Yetkinlik Eşleşmesi</div>
+          </div>
+          <div id="results"><p class="muted">Henüz eşleşme yok.</p></div>
+        </div>
+
+        <div class="panel">
+          <h2>Yetkinliklerim</h2>
+          <p class="muted" style="margin:0 0 4px;">Yalnızca Anahtar Kelime Bankası'nda tanımlı olan kelimeler seçilebilir.</p>
+          <div class="skill-form">
+            <select id="skillSelect"></select>
+            <input type="number" id="skillYears" min="0" step="1" placeholder="yıl" style="display:none;">
+            <button id="addSkillBtn">➕ Ekle</button>
+          </div>
+          <div class="chip-list" id="skillChips"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Anahtar Kelime Bankası</h2>
+          <p class="muted" style="margin:0 0 4px;">Şu an <b id="bankCount">0</b> kelime tanımlı.</p>
+
+          <div class="link-row">
+            <label class="reg"><input type="checkbox" id="linkedCheckbox"> Bağlı anahtar kelime olarak ekle</label>
+            <select id="linkedParentSelect" style="display:none;"></select>
+          </div>
+
+          <div class="bank-form">
+            <input type="text" id="newTerm" placeholder="Kelime / ifade (örn. Airflow)">
+            <div class="cat-field">
+              <select id="newCategorySelect"></select>
+              <input type="text" id="newCategoryText" placeholder="Yeni kategori adı" style="display:none;">
+              <span id="linkedCategoryDisplay" class="muted" style="display:none;"></span>
+            </div>
+            <label class="reg"><input type="checkbox" id="newRegex"> regex</label>
+            <button id="addBtn">➕ Ekle</button>
+          </div>
+
+          <details>
+            <summary>Tüm kelimeleri listele / düzenle</summary>
+            <table id="bankTable">
+              <thead><tr><th>Kelime</th><th>Kategori</th><th></th></tr></thead>
+              <tbody id="bankBody"></tbody>
+            </table>
+          </details>
+
+          <div class="toolbar">
+            <button class="secondary" id="exportBtn">⬇ JSON indir</button>
+            <button class="secondary" id="importBtn">⬆ JSON yükle</button>
+            <button class="secondary" id="resetBtn">🔄 Varsayılana dön</button>
+            <input type="file" id="importFile" accept="application/json">
+          </div>
+          <div class="toolbar">
+            <button class="secondary" id="openManageBtn">🔗 Anahtar Kelime Yönetim Paneli</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="multiView" style="display:none;">
+    <div class="panel">
+      <h2>İlan Karşılaştırma</h2>
+      <p class="muted" style="margin:0 0 6px;">
+        "Klasör Seç" butonu ile txt/md formatında kaydedilen ilanlarınızın içe aktarılmasını sağlayabilirsiniz.
+      </p>
+      <br>
+      <p class="muted" id="folderStatus" style="margin:0 0 10px;">Klasör bağlantısı kontrol ediliyor…</p>
+      <div class="toolbar">
+        <button class="secondary" id="pickFolderBtn">📁 Klasör Seç</button>
+        <button class="secondary" id="refreshFolderBtn" style="display:none;">🔁 Yenile</button>
+        <button class="secondary" id="unlinkFolderBtn" style="display:none;">🔌 Bağlantıyı Kaldır</button>
+        <input type="file" id="folderInput" webkitdirectory multiple>
+        <button class="secondary" id="showAddPostingBtn">➕ Yeni İlan Ekle</button>
+      </div>
+
+      <div id="addPostingForm" style="display:none; margin-top:12px;">
+        <input type="text" id="postingTitle" placeholder="Başlık (örn. Metacortex Systems - Data Engineer)">
+        <textarea id="postingText" placeholder="İlan metnini yapıştır…"></textarea>
+        <div class="toolbar">
+          <button id="savePostingBtn">Ekle</button>
+          <button class="secondary" id="cancelPostingBtn">İptal</button>
+        </div>
+      </div>
+
+      <table id="postingsTable">
+        <thead><tr><th>İlan</th><th>Kaynak</th><th>Eşleşme %</th><th>Zorunlu Eksik</th><th></th></tr></thead>
+        <tbody id="postingsBody"></tbody>
+      </table>
+      <p class="muted" id="postingsEmpty" style="margin-top:10px;">Henüz ilan eklenmedi.</p>
+    </div>
+  </div>
+
+  <div id="manageView" style="display:none;">
+    <div class="panel">
+      <h2>Anahtar Kelime Yönetim Paneli</h2>
+      <p class="muted" style="margin:0 0 12px;">Tüm anahtar kelimeler ve varsa bağlı kelimeler bu panelde görüntülenebilir, düzenlenebilir ve silinebilir.</p>
+      <div id="manageList"></div>
+    </div>
+  </div>
+
+  <footer>Anahtar kelime bankası ve eklenen ilanlar oturum boyunca hafızada tutulur. Anahtar kelimeleri kalıcı olarak saklamak için “JSON indir” ile dışa aktarabilir, sonraki kullanımlarda "JSON yükle" butonu ile geri yükleyebilirsiniz.</footer>
+</div>
+
+<script>
+const DEFAULT_BANK = [
+  {term:"yıl deneyim", category:"Experience", type:"experience",
+   regex:"(?:(\\d+)\\+?\\s*y[ıi]l[a-zçğıöşüA-ZÇĞİÖŞÜ\\s]{0,20}deneyim)|(?:(\\d+)\\+?\\s*years?\\s*(?:or more\\s*)?of\\s*experience)",
+   aliases:["years of experience"]},
+  {term:"Bachelor's degree", category:"Experience", aliases:["Bachelor degree"]},
+  {term:"Master's degree", category:"Experience", aliases:["Master degree"]},
+  {term:"PhD", category:"Experience"},
+  {term:"equivalent practical experience", category:"Experience"},
+
+  {term:"SQL", category:"Data"},
+  {term:"T-SQL", category:"Data"},
+  {term:"PL/SQL", category:"Data"},
+  {term:"PostgreSQL", category:"Data"},
+  {term:"MongoDB", category:"Data"},
+  {term:"relational database", category:"Data"},
+  {term:"NoSQL", category:"Data"},
+  {term:"data warehouse", category:"Data"},
+  {term:"data lake", category:"Data"},
+  {term:"data pipeline", category:"Data"},
+  {term:"data modeling", category:"Data"},
+  {term:"data governance", category:"Data"},
+  {term:"data quality", category:"Data"},
+  {term:"distributed systems", category:"Data"},
+  {term:"batch processing", category:"Data"},
+  {term:"stream processing", category:"Data"},
+  {term:"ETL", category:"Data"},
+  {term:"ELT", category:"Data"},
+  {term:"BigQuery", category:"Data"},
+  {term:"Snowflake", category:"Data"},
+  {term:"Redshift", category:"Data"},
+  {term:"Databricks", category:"Data"},
+  {term:"Delta Lake", category:"Data"},
+  {term:"dbt", category:"Data"},
+  {term:"Airflow", category:"Data"},
+  {term:"Spark", category:"Data", aliases:["PySpark"]},
+  {term:"Flink", category:"Data"},
+  {term:"Hadoop", category:"Data"},
+  {term:"Kafka", category:"Data"},
+  {term:"A/B testing", category:"Data"},
+  {term:"cohort analysis", category:"Data"},
+
+  {term:"Python", category:"Programming"},
+  {term:"Java", category:"Programming"},
+  {term:"Scala", category:"Programming"},
+  {term:"Bash", category:"Programming"},
+  {term:"JavaScript", category:"Programming"},
+
+  {term:"React", category:"Frontend"},
+  {term:"Angular", category:"Frontend"},
+  {term:"Vue", category:"Frontend"},
+  {term:"Next.js", category:"Frontend"},
+  {term:"TypeScript", category:"Frontend"},
+  {term:"HTML", category:"Frontend"},
+  {term:"CSS", category:"Frontend"},
+  {term:"Tailwind CSS", category:"Frontend"},
+  {term:"Redux", category:"Frontend"},
+  {term:"Webpack", category:"Frontend"},
+  {term:"Jest", category:"Frontend"},
+  {term:"Playwright", category:"Frontend"},
+  {term:"Responsive design", category:"Frontend"},
+  {term:"Accessibility", category:"Frontend", aliases:["a11y","WCAG"]},
+
+  {term:"Node.js", category:"Backend"},
+  {term:"Express", category:"Backend"},
+  {term:"Django", category:"Backend"},
+  {term:"Flask", category:"Backend"},
+  {term:"FastAPI", category:"Backend"},
+  {term:"Spring Boot", category:"Backend"},
+  {term:".NET", category:"Backend", aliases:["dotnet"]},
+  {term:"C#", category:"Backend"},
+  {term:"Golang", category:"Backend"},
+  {term:"Ruby on Rails", category:"Backend"},
+  {term:"Microservices", category:"Backend"},
+  {term:"REST API", category:"Backend"},
+  {term:"GraphQL", category:"Backend"},
+  {term:"OAuth", category:"Backend"},
+  {term:"JWT", category:"Backend"},
+  {term:"Message Queue", category:"Backend"},
+  {term:"RabbitMQ", category:"Backend"},
+  {term:"Redis", category:"Backend"},
+  {term:"System Design", category:"Backend"},
+
+  {term:"Docker", category:"DevOps"},
+  {term:"Kubernetes", category:"DevOps"},
+  {term:"Terraform", category:"DevOps"},
+  {term:"CI/CD", category:"DevOps"},
+  {term:"Linux", category:"DevOps"},
+
+  {term:"Tableau", category:"Visualization"},
+  {term:"Looker", category:"Visualization"},
+  {term:"Power BI", category:"Visualization"},
+  {term:"visualization", category:"Visualization", aliases:["görselleştirme"]},
+  {term:"dashboard", category:"Visualization"},
+
+  {term:"Statistics", category:"Analytics"},
+  {term:"Forecasting", category:"Analytics"},
+  {term:"KPI", category:"Analytics"},
+  {term:"DAX", category:"Analytics"},
+  {term:"Power Query", category:"Analytics"},
+  {term:"Google Analytics", category:"Analytics"},
+
+  {term:"GCP", category:"Cloud", aliases:["Google Cloud"]},
+  {term:"AWS", category:"Cloud"},
+  {term:"Azure", category:"Cloud"},
+  {term:"cloud data warehouse", category:"Cloud"},
+
+  {term:"AI", category:"AI/ML", aliases:["yapay zeka","artificial intelligence"]},
+
+  {term:"Excel", category:"Tools"},
+  {term:"Git", category:"Tools"},
+  {term:"Mixpanel", category:"Tools"},
+  {term:"Amplitude", category:"Tools"},
+  {term:"Jira", category:"Tools"},
+
+  {term:"stakeholder", category:"SoftSkills"},
+  {term:"attention to detail", category:"SoftSkills"},
+  {term:"storytelling", category:"SoftSkills", aliases:["data storytelling"]},
+  {term:"presentation skills", category:"SoftSkills"},
+  {term:"analytical thinking", category:"SoftSkills"}
+];
+
+let bank = DEFAULT_BANK.map((e,i)=>({id:i+1, ...e}));
+let nextId = bank.length+1;
+let mySkills = new Map();
+let postings = [];
+let nextPostingId = 1;
+let editState = null;
+let linkedDirHandle = null;
+
+const CAT_COLORS = ["#ffe14d","#ff9ecf","#8fe3a3","#8fc9ff","#ffb066","#c9a6ff","#8fe0d9","#ffd88f"];
+function colorFor(cat){
+  let h=0; for(let i=0;i<cat.length;i++){h=(h*31+cat.charCodeAt(i))>>>0;}
+  return CAT_COLORS[h % CAT_COLORS.length];
+}
+
+function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function wordWrap(t){
+  const startsWord = /^[\wçğıöşüÇĞİÖŞÜ]/.test(t);
+  const endsWord = /[\wçğıöşüÇĞİÖŞÜ]$/.test(t);
+  return (startsWord? '\\b':'') + escapeRegExp(t) + (endsWord? '\\b':'');
+}
+
+function buildEntryRegex(entry){
+  if(entry.regex){
+    try{ return new RegExp(entry.regex, 'gi'); } catch(e){ return null; }
+  }
+  const terms = [entry.term, ...(entry.aliases||[])];
+  const parts = terms.map(wordWrap);
+  const pattern = parts.length>1 ? `(?:${parts.join('|')})` : parts[0];
+  try{ return new RegExp(pattern, 'gi'); } catch(e){ return null; }
+}
+
+function isEntryCovered(id, requiredYears){
+  if(!mySkills.has(id)) return false;
+  const val = mySkills.get(id);
+  if(val && typeof val === 'object' && typeof val.years === 'number' && typeof requiredYears === 'number' && !isNaN(requiredYears)){
+    return val.years >= requiredYears;
+  }
+  return true;
+}
+
+function findMatches(text){
+  let matches = [];
+  bank.forEach(entry=>{
+    const re = buildEntryRegex(entry);
+    if(!re) return;
+    let m;
+    while((m = re.exec(text))){
+      const match = {start:m.index, end:m.index+m[0].length, text:m[0], category:entry.category, term:entry.term, id:entry.id};
+      if(entry.type==='experience'){
+        const captured = m[1]!==undefined ? m[1] : m[2];
+        if(captured!==undefined){
+          const num = parseInt(captured,10);
+          if(!isNaN(num)) match.years = num;
+        }
+      }
+      matches.push(match);
+      if(m[0].length===0) re.lastIndex++;
+      if(re.lastIndex > text.length+1) break;
+    }
+  });
+  matches.sort((a,b)=> a.start-b.start || (b.end-b.start)-(a.end-a.start));
+  const kept=[]; let lastEnd=-1;
+  matches.forEach(m=>{ if(m.start>=lastEnd){ kept.push(m); lastEnd=m.end; } });
+  return kept;
+}
+
+const NICE_RE = /(preferred|nice[ -]to[ -]have|bonus|pluses|desirable|tercih)/i;
+const MUST_RE = /(requirements?|qualifications?|must[ -]have|required|zorunlu|aranan)/i;
+
+function detectSections(text){
+  const lines = text.split('\n');
+  const sections = [];
+  let cursor = 0;
+  let currentType = 'neutral';
+  let currentStart = 0;
+  lines.forEach(line=>{
+    const trimmed = line.trim();
+    const isBullet = /^[\*\-•]/.test(trimmed);
+    let newType = null;
+    if(trimmed.length>0 && trimmed.length<80 && !isBullet){
+      if(NICE_RE.test(trimmed)) newType='nice';
+      else if(MUST_RE.test(trimmed)) newType='must';
+      else newType='neutral';
+    }
+    if(newType && newType!==currentType){
+      sections.push({start:currentStart, end:cursor, type:currentType});
+      currentType=newType;
+      currentStart=cursor;
+    }
+    cursor += line.length+1;
+  });
+  sections.push({start:currentStart, end:text.length, type:currentType});
+  return sections;
+}
+
+function analyze(text){
+  const matches = findMatches(text);
+  const sections = detectSections(text);
+  function classify(pos){
+    for(const s of sections){ if(pos>=s.start && pos<s.end) return s.type; }
+    return 'neutral';
+  }
+  matches.forEach(m=> m.section = classify(m.start));
+
+  const freq = new Map();
+  matches.forEach(m=> freq.set(m.id, (freq.get(m.id)||0)+1));
+
+  const requiredYearsById = new Map();
+  const bestExpText = new Map();
+  matches.forEach(m=>{
+    if(typeof m.years === 'number'){
+      const prev = requiredYearsById.get(m.id);
+      if(prev===undefined || m.years>prev){
+        requiredYearsById.set(m.id, m.years);
+        bestExpText.set(m.id, m.text.trim());
+      }
+    }
+  });
+
+  const grouped = {};
+  matches.forEach(m=>{
+    if(!grouped[m.category]) grouped[m.category] = new Map();
+    if(!grouped[m.category].has(m.id)){
+      const reqYears = requiredYearsById.get(m.id);
+      const displayTerm = reqYears!==undefined ? bestExpText.get(m.id) : m.term;
+      grouped[m.category].set(m.id, {term:displayTerm, section:m.section, requiredYears:reqYears});
+    }
+  });
+
+  const uniqueIds = new Set(matches.map(m=>m.id));
+  let totalWeight=0, coveredWeight=0;
+  uniqueIds.forEach(id=>{
+    const w = freq.get(id)||1;
+    totalWeight+=w;
+    if(isEntryCovered(id, requiredYearsById.get(id))) coveredWeight+=w;
+  });
+  const pct = totalWeight===0 ? 0 : Math.round(coveredWeight/totalWeight*100);
+
+  const mustIds = new Set(matches.filter(m=> m.section==='must').map(m=>m.id));
+  const mustMissingTerms = [...mustIds].filter(id=> !isEntryCovered(id, requiredYearsById.get(id)))
+    .map(id=>{
+      const reqYears = requiredYearsById.get(id);
+      if(reqYears!==undefined) return bestExpText.get(id);
+      const e = bank.find(b=>b.id===id);
+      return e ? e.term : null;
+    })
+    .filter(Boolean);
+
+  return {matches, grouped, uniqueIds, freq, totalWeight, coveredWeight, pct,
+    mustTotal: mustIds.size, mustCovered: mustIds.size - mustMissingTerms.length, mustMissingTerms};
+}
+
+function renderGauge(pct){
+  const circumference = 502.4;
+  const half = 251.2;
+  const fillLen = Math.max(0, Math.min(100, pct)) / 100 * half;
+  const fill = document.getElementById('gaugeFill');
+  fill.setAttribute('stroke-dasharray', `${fillLen} ${circumference}`);
+  const color = pct >= 70 ? '#1f8a4c' : pct >= 40 ? '#c98a1c' : '#c23b3b';
+  fill.setAttribute('stroke', color);
+  document.getElementById('gaugePct').textContent = pct + '%';
+}
+
+function renderFlagBanner(result){
+  const el = document.getElementById('flagBanner');
+  if(result.mustTotal === 0){
+    el.innerHTML = '';
+    return;
+  }
+  if(result.mustMissingTerms.length === 0){
+    el.innerHTML = `<div class="flag-banner ok">✅ Tespit edilen ${result.mustTotal} zorunlu gereksinimin tümünü karşılıyorsun.</div>`;
+  } else {
+    el.innerHTML = `<div class="flag-banner warn">⚠️ ${result.mustTotal} zorunlu gereksinimden ${result.mustMissingTerms.length} tanesi eksik: ${escapeHtml(result.mustMissingTerms.join(', '))}</div>`;
+  }
+}
+
+function render(){
+  const text = document.getElementById('jobInput').value;
+  const preview = document.getElementById('preview');
+  const results = document.getElementById('results');
+
+  if(!text.trim()){
+    preview.className='empty';
+    preview.textContent='İlan metni alanı doldurulduğunda tespit edilen anahtar kelimeler burada vurgulanacak.';
+    results.innerHTML = '<p class="muted">Henüz eşleşme yok.</p>';
+    document.getElementById('statCount').textContent='0';
+    document.getElementById('statCat').textContent='0';
+    document.getElementById('flagBanner').innerHTML='';
+    renderGauge(0);
+    return;
+  }
+
+  const result = analyze(text);
+  const matches = result.matches;
+
+  let html=''; let cursor=0;
+  matches.forEach(m=>{
+    html += escapeHtml(text.slice(cursor, m.start));
+    html += `<mark class="hl" style="--cat-color:${colorFor(m.category)}" title="${escapeHtml(m.category)}">${escapeHtml(m.text)}</mark>`;
+    cursor = m.end;
+  });
+  html += escapeHtml(text.slice(cursor));
+  preview.className='';
+  preview.innerHTML = html;
+
+  const grouped = result.grouped;
+  const cats = Object.keys(grouped).sort((a,b)=> grouped[b].size - grouped[a].size);
+  if(cats.length===0){
+    results.innerHTML = '<p class="muted">Henüz eşleşme yok.</p>';
+  } else {
+    results.innerHTML = cats.map(cat=>{
+      const color = colorFor(cat);
+      const entries = [...grouped[cat].entries()];
+      let catTotalWeight=0, catCoveredWeight=0;
+      const chips = entries.map(([id,info])=>{
+        const has = isEntryCovered(id, info.requiredYears);
+        const freq = result.freq.get(id)||1;
+        catTotalWeight += freq;
+        if(has) catCoveredWeight += freq;
+        const icon = has ? '<span class="mark-good">✅</span>' : '<span class="mark-bad">❌</span>';
+        const freqBadge = freq>1 ? `<span class="freq-badge">×${freq}</span>` : '';
+        const dangerClass = (info.section==='must' && !has) ? ' chip-danger' : '';
+        const sectionLabel = info.section==='must' ? ' — Zorunlu' : info.section==='nice' ? ' — Tercih' : '';
+        return `<span class="chip${dangerClass}" style="--chip-color:${color}" title="${escapeHtml(cat)}${sectionLabel}">${icon}${escapeHtml(info.term)}${freqBadge}</span>`;
+      }).join('');
+      const catTotal = entries.length;
+      const catCovered = entries.filter(([id,info])=> isEntryCovered(id, info.requiredYears)).length;
+      const catPct = catTotalWeight === 0 ? 0 : Math.round((catCoveredWeight / catTotalWeight) * 100);
+      return `<div class="cat-block">
+        <div class="cat-title"><span class="dot" style="background:${color}"></span>${escapeHtml(cat)} (${catCovered}/${catTotal}) - %${catPct}</div>
+        <div class="chip-list">${chips}</div>
+      </div>`;
+    }).join('');
+  }
+
+  renderFlagBanner(result);
+  renderGauge(result.pct);
+  document.getElementById('statCount').textContent = result.uniqueIds.size;
+  document.getElementById('statCat').textContent = cats.length;
+}
+
+function renderBank(){
+  const body = document.getElementById('bankBody');
+  body.innerHTML = bank.map(e=>{
+    const aliasNote = e.aliases && e.aliases.length ? ` <span class="alias-note">(= ${escapeHtml(e.aliases.join(', '))})</span>` : '';
+    return `<tr>
+      <td>${escapeHtml(e.term)}${aliasNote} ${e.regex?'<span class="regex-tag">regex</span>':''}</td>
+      <td>${escapeHtml(e.category)}</td>
+      <td><button class="danger" data-del="${e.id}">sil</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('bankCount').textContent = bank.length;
+
+  renderCategorySelect();
+
+  body.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = Number(btn.dataset.del);
+      bank = bank.filter(e=> e.id !== id);
+      mySkills.delete(id);
+      renderBank(); renderSkillChips(); render(); renderPostings();
+    });
+  });
+
+  renderSkillSelect();
+  renderLinkedParentSelect();
+  renderManagement();
+}
+
+function renderCategorySelect(){
+  const select = document.getElementById('newCategorySelect');
+  const cats = [...new Set(bank.map(e=>e.category))].sort();
+  const prevValue = select.value;
+  select.innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')
+    + '<option value="__new__">+ Yeni Kategori</option>';
+  if(cats.includes(prevValue)) select.value = prevValue;
+  toggleNewCategoryField();
+}
+
+function toggleNewCategoryField(){
+  const linked = document.getElementById('linkedCheckbox').checked;
+  const select = document.getElementById('newCategorySelect');
+  const textField = document.getElementById('newCategoryText');
+  textField.style.display = (!linked && select.value === '__new__') ? '' : 'none';
+}
+
+function renderSkillSelect(){
+  const select = document.getElementById('skillSelect');
+  const cats = [...new Set(bank.map(e=>e.category))].sort();
+  if(bank.length === 0){
+    select.innerHTML = '<option value="">Anahtar Kelime Bankası boş</option>';
+    document.getElementById('addSkillBtn').disabled = true;
+    document.getElementById('skillYears').style.display = 'none';
+    return;
+  }
+  document.getElementById('addSkillBtn').disabled = false;
+  select.innerHTML = cats.map(cat=>{
+    const opts = bank.filter(e=> e.category===cat)
+      .map(e=> `<option value="${e.id}">${escapeHtml(e.term)}</option>`).join('');
+    return `<optgroup label="${escapeHtml(cat)}">${opts}</optgroup>`;
+  }).join('');
+  toggleSkillYearsField();
+}
+
+function toggleSkillYearsField(){
+  const select = document.getElementById('skillSelect');
+  const id = Number(select.value);
+  const entry = bank.find(e=> e.id===id);
+  document.getElementById('skillYears').style.display = (entry && entry.type==='experience') ? '' : 'none';
+}
+
+function renderLinkedParentSelect(){
+  const select = document.getElementById('linkedParentSelect');
+  const cats = [...new Set(bank.map(e=>e.category))].sort();
+  const prevValue = select.value;
+  select.innerHTML = cats.map(cat=>{
+    const opts = bank.filter(e=> e.category===cat)
+      .map(e=> `<option value="${e.id}">${escapeHtml(e.term)}</option>`).join('');
+    return `<optgroup label="${escapeHtml(cat)}">${opts}</optgroup>`;
+  }).join('');
+  if([...select.options].some(o=> o.value===prevValue)) select.value = prevValue;
+  updateLinkedModeUI();
+}
+
+function updateLinkedModeUI(){
+  const linked = document.getElementById('linkedCheckbox').checked;
+  const parentSelect = document.getElementById('linkedParentSelect');
+  const catSelect = document.getElementById('newCategorySelect');
+  const catText = document.getElementById('newCategoryText');
+  const catDisplay = document.getElementById('linkedCategoryDisplay');
+  const regexLabel = document.getElementById('newRegex').parentElement;
+
+  parentSelect.style.display = linked ? '' : 'none';
+  catSelect.style.display = linked ? 'none' : '';
+  regexLabel.style.display = linked ? 'none' : '';
+  toggleNewCategoryField();
+
+  if(linked){
+    const parentId = Number(parentSelect.value);
+    const parent = bank.find(e=> e.id===parentId);
+    catDisplay.style.display='';
+    catDisplay.textContent = parent ? `Kategori: ${parent.category} (otomatik)` : 'Kategori: —';
+  } else {
+    catDisplay.style.display='none';
+  }
+}
+
+function renderSkillChips(){
+  const wrap = document.getElementById('skillChips');
+  if(mySkills.size === 0){
+    wrap.innerHTML = '<p class="muted">Henüz yetkinlik eklemedin.</p>';
+    return;
+  }
+  wrap.innerHTML = [...mySkills.entries()].map(([id,val])=>{
+    const entry = bank.find(e=> e.id === id);
+    if(!entry) return '';
+    const label = (val && typeof val==='object' && typeof val.years==='number')
+      ? `${escapeHtml(entry.term)} (${val.years} yıl)`
+      : escapeHtml(entry.term);
+    return `<span class="skill-chip">${label}<button class="danger" data-rmskill="${id}">×</button></span>`;
+  }).join('');
+  wrap.querySelectorAll('[data-rmskill]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      mySkills.delete(Number(btn.dataset.rmskill));
+      renderSkillChips(); render(); renderPostings();
+    });
+  });
+}
+
+const IDB_NAME = 'ilan-anahtar-kelime-araci';
+const IDB_STORE = 'handles';
+const APPLICATIONS_HANDLE_KEY = 'applicationsDirHandle';
+
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = ()=>{ req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSet(key, value){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(IDB_STORE,'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = ()=> resolve();
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(IDB_STORE,'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbDelete(key){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(IDB_STORE,'readwrite');
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = ()=> resolve();
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+
+async function scanDirectoryHandle(dirHandle, basePath){
+  basePath = basePath || '';
+  const found = [];
+  for await (const [name, handle] of dirHandle.entries()){
+    const path = basePath ? basePath+'/'+name : name;
+    if(handle.kind==='file' && /\.(txt|md)$/i.test(name)){
+      const file = await handle.getFile();
+      const text = await file.text();
+      found.push({key:path, title:name.replace(/\.(txt|md)$/i,''), text});
+    } else if(handle.kind==='directory'){
+      const nested = await scanDirectoryHandle(handle, path);
+      found.push(...nested);
+    }
+  }
+  return found;
+}
+
+function upsertPostingsFromFiles(found){
+  found.forEach(f=>{
+    const existing = postings.find(p=> p.key===f.key);
+    if(existing){ existing.text = f.text; }
+    else { postings.push({id:nextPostingId++, title:f.title, source:'Dosya', text:f.text, key:f.key}); }
+  });
+}
+
+function updateFolderStatus(){
+  const statusEl = document.getElementById('folderStatus');
+  const refreshBtn = document.getElementById('refreshFolderBtn');
+  const unlinkBtn = document.getElementById('unlinkFolderBtn');
+  const pickBtn = document.getElementById('pickFolderBtn');
+  if(!('showDirectoryPicker' in window)){
+    statusEl.textContent = 'Tarayıcın otomatik klasör bağlama özelliğini desteklemiyor (Chrome/Edge önerilir); her oturumda "Klasör Seç" ile elle seçmen gerekir.';
+    refreshBtn.style.display='none';
+    unlinkBtn.style.display='none';
+    return;
+  }
+  if(linkedDirHandle){
+    statusEl.textContent = `Bağlı klasör: ${linkedDirHandle.name} — bir sonraki açılışta otomatik taranacak.`;
+    refreshBtn.style.display='';
+    unlinkBtn.style.display='';
+    pickBtn.textContent = '📁 Farklı Klasör Seç';
+  } else {
+    statusEl.textContent = 'İlan klasörüne henüz bağlanılmadı. Klasör bir kere seçildiğinde bir sonraki açılışlarda otomatik taranır.';
+    refreshBtn.style.display='none';
+    unlinkBtn.style.display='none';
+    pickBtn.textContent = '📁 Klasör Seç';
+  }
+}
+
+async function scanLinkedFolder(){
+  if(!linkedDirHandle) return;
+  try{
+    const found = await scanDirectoryHandle(linkedDirHandle);
+    if(found.length===0){
+      alert('Bağlı klasörde .txt veya .md dosyası bulunamadı.');
+    }
+    upsertPostingsFromFiles(found);
+    renderPostings();
+  }catch(e){
+    alert('Klasör taranamadı: ' + e.message);
+  }
+  updateFolderStatus();
+}
+
+async function tryAutoLoadApplications(){
+  if(!('showDirectoryPicker' in window)){
+    updateFolderStatus();
+    return;
+  }
+  try{
+    const stored = await idbGet(APPLICATIONS_HANDLE_KEY);
+    if(!stored){
+      updateFolderStatus();
+      return;
+    }
+    linkedDirHandle = stored;
+    const perm = await stored.queryPermission({mode:'read'});
+    if(perm === 'granted'){
+      await scanLinkedFolder();
+    } else {
+      updateFolderStatus();
+    }
+  }catch(e){
+    updateFolderStatus();
+  }
+}
+
+function renderPostings(){
+  const body = document.getElementById('postingsBody');
+  const empty = document.getElementById('postingsEmpty');
+  const table = document.getElementById('postingsTable');
+  if(postings.length===0){
+    table.style.display='none';
+    empty.style.display='';
+    return;
+  }
+  table.style.display='';
+  empty.style.display='none';
+
+  const scored = postings.map(p=> ({p, result: analyze(p.text)}));
+  scored.sort((a,b)=> b.result.pct - a.result.pct);
+
+  body.innerHTML = scored.map(({p,result})=>{
+    const missingCount = result.mustMissingTerms.length;
+    const missingClass = missingCount===0 ? 'zero' : 'nonzero';
+    const missingText = result.mustTotal===0 ? '—' : `${result.mustCovered}/${result.mustTotal}`;
+    return `<tr>
+      <td>${escapeHtml(p.title)}</td>
+      <td><span class="src-tag">${escapeHtml(p.source)}</span></td>
+      <td class="pct-cell">%${result.pct}</td>
+      <td class="missing-cell ${missingClass}">${missingText}</td>
+      <td>
+        <button class="secondary" data-open="${p.id}">Aç</button>
+        <button class="danger" data-rmposting="${p.id}">sil</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  body.querySelectorAll('[data-open]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = Number(btn.dataset.open);
+      const posting = postings.find(p=> p.id===id);
+      if(!posting) return;
+      document.getElementById('jobInput').value = posting.text;
+      setTab('single');
+      render();
+    });
+  });
+  body.querySelectorAll('[data-rmposting]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      postings = postings.filter(p=> p.id !== Number(btn.dataset.rmposting));
+      renderPostings();
+    });
+  });
+}
+
+function renderManageMainRow(e){
+  const cats = [...new Set(bank.map(x=>x.category))].sort();
+  const isEditingMain = editState && editState.type==='main' && editState.id===e.id;
+  const mainHtml = isEditingMain
+    ? `<input type="text" class="manage-edit-term" value="${escapeHtml(e.term)}">
+       <select class="manage-edit-cat">${cats.map(c=>`<option value="${escapeHtml(c)}" ${c===e.category?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+       <button class="secondary btn-sm" data-save-main="${e.id}">Kaydet</button>
+       <button class="secondary btn-sm" data-cancel-main="1">İptal</button>`
+    : `<strong>${escapeHtml(e.term)}</strong> ${e.regex?'<span class="regex-tag">regex</span>':''}
+       <button class="secondary btn-sm" data-edit-main="${e.id}">düzenle</button>
+       <button class="danger btn-sm" data-del-main="${e.id}">sil</button>`;
+
+  const aliases = e.aliases || [];
+  const aliasRows = aliases.map((a,idx)=>{
+    const isEditingAlias = editState && editState.type==='alias' && editState.id===e.id && editState.index===idx;
+    return isEditingAlias
+      ? `<div class="manage-alias-row">
+           ↳ <input type="text" class="manage-edit-alias" value="${escapeHtml(a)}">
+           <button class="secondary btn-sm" data-save-alias="${e.id}:${idx}">Kaydet</button>
+           <button class="secondary btn-sm" data-cancel-alias="1">İptal</button>
+         </div>`
+      : `<div class="manage-alias-row">
+           ↳ ${escapeHtml(a)}
+           <button class="secondary btn-sm" data-edit-alias="${e.id}:${idx}">düzenle</button>
+           <button class="danger btn-sm" data-del-alias="${e.id}:${idx}">sil</button>
+         </div>`;
+  }).join('');
+
+  const addAliasRow = `<div class="manage-alias-row manage-add-alias">
+      ↳ <input type="text" class="manage-new-alias" placeholder="Bağlı kelime ekle…">
+      <button class="secondary btn-sm" data-add-alias="${e.id}">+ Ekle</button>
+    </div>`;
+
+  return `<div class="manage-row" data-row="${e.id}">
+    <div class="manage-main">${mainHtml}</div>
+    <div class="manage-aliases">${aliasRows}${addAliasRow}</div>
+  </div>`;
+}
+
+function renderManagement(){
+  const wrap = document.getElementById('manageList');
+  if(!wrap) return;
+  const cats = [...new Set(bank.map(e=>e.category))].sort();
+  wrap.innerHTML = cats.map(cat=>{
+    const items = bank.filter(e=> e.category===cat);
+    const rows = items.map(renderManageMainRow).join('');
+    return `<div class="cat-block">
+      <div class="cat-title"><span class="dot" style="background:${colorFor(cat)}"></span>${escapeHtml(cat)}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('click', (ev)=>{
+  const t = ev.target;
+  if(!t.closest('#manageList')) return;
+
+  if(t.dataset.editMain){
+    editState = {type:'main', id:Number(t.dataset.editMain)};
+    renderManagement();
+  } else if(t.dataset.cancelMain){
+    editState = null;
+    renderManagement();
+  } else if(t.dataset.saveMain){
+    const id = Number(t.dataset.saveMain);
+    const row = t.closest('.manage-row');
+    const newTerm = row.querySelector('.manage-edit-term').value.trim();
+    const newCat = row.querySelector('.manage-edit-cat').value;
+    if(newTerm){
+      const entry = bank.find(x=>x.id===id);
+      entry.term = newTerm;
+      entry.category = newCat;
+    }
+    editState = null;
+    renderBank(); render(); renderPostings();
+  } else if(t.dataset.delMain){
+    const id = Number(t.dataset.delMain);
+    if(!confirm('Bu anahtar kelimeyi (ve bağlı kelimelerini) silmek istediğine emin misin?')) return;
+    bank = bank.filter(e=> e.id!==id);
+    mySkills.delete(id);
+    editState = null;
+    renderBank(); renderSkillChips(); render(); renderPostings();
+  } else if(t.dataset.editAlias){
+    const [id, idx] = t.dataset.editAlias.split(':').map(Number);
+    editState = {type:'alias', id, index:idx};
+    renderManagement();
+  } else if(t.dataset.cancelAlias){
+    editState = null;
+    renderManagement();
+  } else if(t.dataset.saveAlias){
+    const [id, idx] = t.dataset.saveAlias.split(':').map(Number);
+    const row = t.closest('.manage-alias-row');
+    const newVal = row.querySelector('.manage-edit-alias').value.trim();
+    const entry = bank.find(x=>x.id===id);
+    if(entry && entry.aliases && newVal){ entry.aliases[idx] = newVal; }
+    editState = null;
+    renderBank(); render(); renderPostings();
+  } else if(t.dataset.delAlias){
+    const [id, idx] = t.dataset.delAlias.split(':').map(Number);
+    const entry = bank.find(x=>x.id===id);
+    if(entry && entry.aliases){ entry.aliases.splice(idx,1); }
+    renderBank(); render(); renderPostings();
+  } else if(t.dataset.addAlias){
+    const id = Number(t.dataset.addAlias);
+    const row = t.closest('.manage-add-alias');
+    const input = row.querySelector('.manage-new-alias');
+    const val = input.value.trim();
+    if(!val) return;
+    const entry = bank.find(x=>x.id===id);
+    if(!entry.aliases) entry.aliases=[];
+    entry.aliases.push(val);
+    renderBank(); render(); renderPostings();
+  }
+});
+
+function setTab(tab){
+  document.getElementById('singleView').style.display = tab==='single' ? '' : 'none';
+  document.getElementById('multiView').style.display = tab==='multi' ? '' : 'none';
+  document.getElementById('manageView').style.display = tab==='manage' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
+  if(tab==='manage') renderManagement();
+}
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> setTab(btn.dataset.tab));
+});
+document.getElementById('openManageBtn').addEventListener('click', ()=> setTab('manage'));
+
+document.getElementById('newCategorySelect').addEventListener('change', toggleNewCategoryField);
+document.getElementById('linkedCheckbox').addEventListener('change', updateLinkedModeUI);
+document.getElementById('linkedParentSelect').addEventListener('change', updateLinkedModeUI);
+document.getElementById('skillSelect').addEventListener('change', toggleSkillYearsField);
+
+document.getElementById('addSkillBtn').addEventListener('click', ()=>{
+  const select = document.getElementById('skillSelect');
+  const id = Number(select.value);
+  if(!id) return;
+  const entry = bank.find(e=> e.id===id);
+  if(entry && entry.type==='experience'){
+    const yearsInput = document.getElementById('skillYears');
+    const years = Number(yearsInput.value);
+    if(yearsInput.value==='' || isNaN(years) || years<0){ yearsInput.focus(); return; }
+    mySkills.set(id, {years});
+    yearsInput.value='';
+  } else {
+    mySkills.set(id, true);
+  }
+  renderSkillChips(); render(); renderPostings();
+});
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const termEl = document.getElementById('newTerm');
+  const term = termEl.value.trim();
+  if(!term){ termEl.focus(); return; }
+
+  const linked = document.getElementById('linkedCheckbox').checked;
+  if(linked){
+    const parentId = Number(document.getElementById('linkedParentSelect').value);
+    const parent = bank.find(e=> e.id===parentId);
+    if(!parent) return;
+    if(!parent.aliases) parent.aliases = [];
+    parent.aliases.push(term);
+    termEl.value='';
+    document.getElementById('linkedCheckbox').checked = false;
+    updateLinkedModeUI();
+    renderBank(); render(); renderPostings();
+    return;
+  }
+
+  const catSelect = document.getElementById('newCategorySelect');
+  const catText = document.getElementById('newCategoryText');
+  const regexEl = document.getElementById('newRegex');
+  const category = catSelect.value === '__new__' ? catText.value.trim() : catSelect.value;
+  if(!category){ (catSelect.value==='__new__' ? catText : termEl).focus(); return; }
+  bank.push({id:nextId++, term, category, regex: regexEl.checked ? term : undefined});
+  termEl.value=''; catText.value=''; regexEl.checked=false;
+  renderBank(); render(); renderPostings();
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const bankData = bank.map(({term,category,regex,aliases,type})=>{
+    const o = {term,category};
+    if(regex) o.regex = regex;
+    if(aliases) o.aliases = aliases;
+    if(type) o.type = type;
+    return o;
+  });
+  const skillsData = [...mySkills.entries()].map(([id,val])=>{
+    const entry = bank.find(e=> e.id===id);
+    if(!entry) return null;
+    const o = {term: entry.term, category: entry.category};
+    if(val && typeof val==='object' && typeof val.years==='number') o.years = val.years;
+    return o;
+  }).filter(Boolean);
+  const data = {bank: bankData, skills: skillsData};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'anahtar-kelime-bankasi.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      const bankArray = Array.isArray(parsed) ? parsed : parsed.bank;
+      if(!Array.isArray(bankArray)) throw new Error('JSON bir anahtar kelime bankası içermeli');
+      const ok = bankArray.every(e=> e && typeof e.term==='string' && typeof e.category==='string');
+      if(!ok) throw new Error('Her kayıtta term ve category alanı olmalı');
+      bank = bankArray.map((e,i)=>({id:i+1, term:e.term, category:e.category, regex:e.regex, aliases:e.aliases, type:e.type}));
+      nextId = bank.length+1;
+
+      mySkills = new Map();
+      const skillsArray = Array.isArray(parsed) ? [] : (Array.isArray(parsed.skills) ? parsed.skills : []);
+      skillsArray.forEach(s=>{
+        if(!s || typeof s.term!=='string') return;
+        const entry = bank.find(e=> e.term===s.term && e.category===s.category);
+        if(!entry) return;
+        if(typeof s.years==='number'){ mySkills.set(entry.id, {years:s.years}); }
+        else { mySkills.set(entry.id, true); }
+      });
+
+      editState = null;
+      renderBank(); renderSkillChips(); render(); renderPostings();
+    }catch(err){
+      alert('JSON yüklenemedi: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value='';
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Anahtar kelime bankasını varsayılana döndürmek istediğine emin misin? Eklediğin/sildiğin değişiklikler ve seçtiğin yetkinlikler kaybolur.')) return;
+  bank = DEFAULT_BANK.map((e,i)=>({id:i+1, ...e}));
+  nextId = bank.length+1;
+  mySkills = new Map();
+  editState = null;
+  renderBank(); renderSkillChips(); render(); renderPostings();
+});
+
+document.getElementById('pickFolderBtn').addEventListener('click', async ()=>{
+  if('showDirectoryPicker' in window){
+    try{
+      const handle = await window.showDirectoryPicker();
+      linkedDirHandle = handle;
+      await idbSet(APPLICATIONS_HANDLE_KEY, handle);
+      await scanLinkedFolder();
+    }catch(e){
+      if(e.name !== 'AbortError') alert('Klasör seçilemedi: ' + e.message);
+    }
+  } else {
+    document.getElementById('folderInput').click();
+  }
+});
+document.getElementById('refreshFolderBtn').addEventListener('click', async ()=>{
+  if(!linkedDirHandle) return;
+  try{
+    const perm = await linkedDirHandle.requestPermission({mode:'read'});
+    if(perm==='granted'){ await scanLinkedFolder(); }
+    else { alert('Klasör erişim izni verilmedi.'); }
+  }catch(e){
+    alert('İzin istenemedi: ' + e.message);
+  }
+});
+document.getElementById('unlinkFolderBtn').addEventListener('click', async ()=>{
+  linkedDirHandle = null;
+  await idbDelete(APPLICATIONS_HANDLE_KEY);
+  updateFolderStatus();
+});
+document.getElementById('folderInput').addEventListener('change', async (ev)=>{
+  const files = [...ev.target.files].filter(f=> /\.(txt|md)$/i.test(f.name));
+  if(files.length===0){
+    alert('Seçilen klasörde .txt veya .md dosyası bulunamadı.');
+    ev.target.value='';
+    return;
+  }
+  const found = [];
+  for(const f of files){
+    const text = await f.text();
+    found.push({key: f.webkitRelativePath || f.name, title: f.name.replace(/\.(txt|md)$/i,''), text});
+  }
+  upsertPostingsFromFiles(found);
+  renderPostings();
+  ev.target.value='';
+});
+
+document.getElementById('showAddPostingBtn').addEventListener('click', ()=>{
+  document.getElementById('addPostingForm').style.display='';
+});
+document.getElementById('cancelPostingBtn').addEventListener('click', ()=>{
+  document.getElementById('addPostingForm').style.display='none';
+  document.getElementById('postingTitle').value='';
+  document.getElementById('postingText').value='';
+});
+document.getElementById('savePostingBtn').addEventListener('click', ()=>{
+  const titleEl = document.getElementById('postingTitle');
+  const textEl = document.getElementById('postingText');
+  const title = titleEl.value.trim() || `İlan #${nextPostingId}`;
+  const text = textEl.value.trim();
+  if(!text){ textEl.focus(); return; }
+  postings.push({id:nextPostingId++, title, source:'Manuel', text});
+  titleEl.value=''; textEl.value='';
+  document.getElementById('addPostingForm').style.display='none';
+  renderPostings();
+});
+
+let debounceTimer;
+document.getElementById('jobInput').addEventListener('input', ()=>{
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(render, 150);
+});
+
+renderBank();
+renderSkillChips();
+render();
+renderPostings();
+tryAutoLoadApplications();
+</script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+{
+  "bank": [
+    {
+      "term": "yıl deneyim",
+      "category": "Experience",
+      "regex": "(?:(\\d+)\\+?\\s*y[ıi]l[a-zçğıöşüA-ZÇĞİÖŞÜ\\s]{0,20}deneyim)|(?:(\\d+)\\+?\\s*years?\\s*(?:or more\\s*)?of\\s*experience)",
+      "aliases": [
+        "years of experience"
+      ],
+      "type": "experience"
+    },
+    {
+      "term": "Bachelor's degree",
+      "category": "Experience",
+      "aliases": [
+        "Bachelor degree"
+      ]
+    },
+    {
+      "term": "Master's degree",
+      "category": "Experience",
+      "aliases": [
+        "Master degree"
+      ]
+    },
+    {
+      "term": "PhD",
+      "category": "Experience"
+    },
+    {
+      "term": "equivalent practical experience",
+      "category": "Experience"
+    },
+    {
+      "term": "SQL",
+      "category": "Data"
+    },
+    {
+      "term": "T-SQL",
+      "category": "Data"
+    },
+    {
+      "term": "PL/SQL",
+      "category": "Data"
+    },
+    {
+      "term": "PostgreSQL",
+      "category": "Data"
+    },
+    {
+      "term": "MongoDB",
+      "category": "Data"
+    },
+    {
+      "term": "relational database",
+      "category": "Data"
+    },
+    {
+      "term": "NoSQL",
+      "category": "Data"
+    },
+    {
+      "term": "data warehouse",
+      "category": "Data"
+    },
+    {
+      "term": "data lake",
+      "category": "Data"
+    },
+    {
+      "term": "data pipeline",
+      "category": "Data"
+    },
+    {
+      "term": "data modeling",
+      "category": "Data"
+    },
+    {
+      "term": "data governance",
+      "category": "Data"
+    },
+    {
+      "term": "data quality",
+      "category": "Data"
+    },
+    {
+      "term": "distributed systems",
+      "category": "Data"
+    },
+    {
+      "term": "batch processing",
+      "category": "Data"
+    },
+    {
+      "term": "stream processing",
+      "category": "Data"
+    },
+    {
+      "term": "ETL",
+      "category": "Data"
+    },
+    {
+      "term": "ELT",
+      "category": "Data"
+    },
+    {
+      "term": "BigQuery",
+      "category": "Data"
+    },
+    {
+      "term": "Snowflake",
+      "category": "Data"
+    },
+    {
+      "term": "Redshift",
+      "category": "Data"
+    },
+    {
+      "term": "Databricks",
+      "category": "Data"
+    },
+    {
+      "term": "Delta Lake",
+      "category": "Data"
+    },
+    {
+      "term": "dbt",
+      "category": "Data"
+    },
+    {
+      "term": "Airflow",
+      "category": "Data"
+    },
+    {
+      "term": "Spark",
+      "category": "Data",
+      "aliases": [
+        "PySpark"
+      ]
+    },
+    {
+      "term": "Flink",
+      "category": "Data"
+    },
+    {
+      "term": "Hadoop",
+      "category": "Data"
+    },
+    {
+      "term": "Kafka",
+      "category": "Data"
+    },
+    {
+      "term": "A/B testing",
+      "category": "Data"
+    },
+    {
+      "term": "cohort analysis",
+      "category": "Data"
+    },
+    {
+      "term": "Python",
+      "category": "Programming"
+    },
+    {
+      "term": "Java",
+      "category": "Programming"
+    },
+    {
+      "term": "Scala",
+      "category": "Programming"
+    },
+    {
+      "term": "Bash",
+      "category": "Programming"
+    },
+    {
+      "term": "JavaScript",
+      "category": "Programming"
+    },
+    {
+      "term": "React",
+      "category": "Frontend"
+    },
+    {
+      "term": "Angular",
+      "category": "Frontend"
+    },
+    {
+      "term": "Vue",
+      "category": "Frontend"
+    },
+    {
+      "term": "Next.js",
+      "category": "Frontend"
+    },
+    {
+      "term": "TypeScript",
+      "category": "Frontend"
+    },
+    {
+      "term": "HTML",
+      "category": "Frontend"
+    },
+    {
+      "term": "CSS",
+      "category": "Frontend"
+    },
+    {
+      "term": "Tailwind CSS",
+      "category": "Frontend"
+    },
+    {
+      "term": "Redux",
+      "category": "Frontend"
+    },
+    {
+      "term": "Webpack",
+      "category": "Frontend"
+    },
+    {
+      "term": "Jest",
+      "category": "Frontend"
+    },
+    {
+      "term": "Playwright",
+      "category": "Frontend"
+    },
+    {
+      "term": "Responsive design",
+      "category": "Frontend"
+    },
+    {
+      "term": "Accessibility",
+      "category": "Frontend",
+      "aliases": [
+        "a11y",
+        "WCAG"
+      ]
+    },
+    {
+      "term": "Node.js",
+      "category": "Backend"
+    },
+    {
+      "term": "Express",
+      "category": "Backend"
+    },
+    {
+      "term": "Django",
+      "category": "Backend"
+    },
+    {
+      "term": "Flask",
+      "category": "Backend"
+    },
+    {
+      "term": "FastAPI",
+      "category": "Backend"
+    },
+    {
+      "term": "Spring Boot",
+      "category": "Backend"
+    },
+    {
+      "term": ".NET",
+      "category": "Backend",
+      "aliases": [
+        "dotnet"
+      ]
+    },
+    {
+      "term": "C#",
+      "category": "Backend"
+    },
+    {
+      "term": "Golang",
+      "category": "Backend"
+    },
+    {
+      "term": "Ruby on Rails",
+      "category": "Backend"
+    },
+    {
+      "term": "Microservices",
+      "category": "Backend"
+    },
+    {
+      "term": "REST API",
+      "category": "Backend"
+    },
+    {
+      "term": "GraphQL",
+      "category": "Backend"
+    },
+    {
+      "term": "OAuth",
+      "category": "Backend"
+    },
+    {
+      "term": "JWT",
+      "category": "Backend"
+    },
+    {
+      "term": "Message Queue",
+      "category": "Backend"
+    },
+    {
+      "term": "RabbitMQ",
+      "category": "Backend"
+    },
+    {
+      "term": "Redis",
+      "category": "Backend"
+    },
+    {
+      "term": "System Design",
+      "category": "Backend"
+    },
+    {
+      "term": "Docker",
+      "category": "DevOps"
+    },
+    {
+      "term": "Kubernetes",
+      "category": "DevOps"
+    },
+    {
+      "term": "Terraform",
+      "category": "DevOps"
+    },
+    {
+      "term": "CI/CD",
+      "category": "DevOps"
+    },
+    {
+      "term": "Linux",
+      "category": "DevOps"
+    },
+    {
+      "term": "Tableau",
+      "category": "Visualization"
+    },
+    {
+      "term": "Looker",
+      "category": "Visualization"
+    },
+    {
+      "term": "Power BI",
+      "category": "Visualization"
+    },
+    {
+      "term": "visualization",
+      "category": "Visualization",
+      "aliases": [
+        "görselleştirme"
+      ]
+    },
+    {
+      "term": "dashboard",
+      "category": "Visualization"
+    },
+    {
+      "term": "Statistics",
+      "category": "Analytics"
+    },
+    {
+      "term": "Forecasting",
+      "category": "Analytics"
+    },
+    {
+      "term": "KPI",
+      "category": "Analytics"
+    },
+    {
+      "term": "DAX",
+      "category": "Analytics"
+    },
+    {
+      "term": "Power Query",
+      "category": "Analytics"
+    },
+    {
+      "term": "Google Analytics",
+      "category": "Analytics"
+    },
+    {
+      "term": "GCP",
+      "category": "Cloud",
+      "aliases": [
+        "Google Cloud"
+      ]
+    },
+    {
+      "term": "AWS",
+      "category": "Cloud"
+    },
+    {
+      "term": "Azure",
+      "category": "Cloud"
+    },
+    {
+      "term": "cloud data warehouse",
+      "category": "Cloud"
+    },
+    {
+      "term": "AI",
+      "category": "AI/ML",
+      "aliases": [
+        "yapay zeka",
+        "artificial intelligence"
+      ]
+    },
+    {
+      "term": "Excel",
+      "category": "Tools"
+    },
+    {
+      "term": "Git",
+      "category": "Tools"
+    },
+    {
+      "term": "Mixpanel",
+      "category": "Tools"
+    },
+    {
+      "term": "Amplitude",
+      "category": "Tools"
+    },
+    {
+      "term": "Jira",
+      "category": "Tools"
+    },
+    {
+      "term": "stakeholder",
+      "category": "SoftSkills"
+    },
+    {
+      "term": "attention to detail",
+      "category": "SoftSkills"
+    },
+    {
+      "term": "storytelling",
+      "category": "SoftSkills",
+      "aliases": [
+        "data storytelling"
+      ]
+    },
+    {
+      "term": "presentation skills",
+      "category": "SoftSkills"
+    },
+    {
+      "term": "analytical thinking",
+      "category": "SoftSkills"
+    }
+  ],
+  "skills": []
+}
